@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,9 +14,10 @@ router = APIRouter()
 
 @router.get("/movies/", response_model=MovieListResponseSchema)
 async def get_movie_list(
+        *,
         page: Annotated[int, Query(ge=1)] = 1,
         per_page: Annotated[int, Query(ge=1, le=20)] = 10,
-        db: AsyncSession = Depends(get_db)
+        db: Annotated[AsyncSession, Depends(get_db)]
 ):
     quantity = await db.execute(select(func.count(MovieModel.id)))
     total_items = quantity.scalar()
@@ -43,7 +44,10 @@ async def get_movie_list(
 
 
 @router.get("/movies/{movie_id}/", response_model=MovieDetailResponseSchema)
-async def get_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
+async def get_movie(
+        movie_id: Annotated[int, Path()],
+        db: Annotated[AsyncSession, Depends(get_db)]
+):
     result = await db.execute(select(MovieModel).where(MovieModel.id == movie_id))
     movie = result.scalar_one_or_none()
     if not movie:
