@@ -1,4 +1,4 @@
-from datetime import dategi
+from datetime import date
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
